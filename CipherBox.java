@@ -50,7 +50,7 @@ class ModernGradientPanel extends JPanel {
         setOpaque(true);
     }
 
-    @Override
+    @Override // annotation
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g.create();
@@ -216,8 +216,9 @@ class Manager {
             writer.write("answer:" + (personalAnswer != null ? personalAnswer : "") + "\n");
             writer.write("[Passwords]\n");
             for (int i = 0; i < count; i++) {
-                writer.write(passwordNames[i] + ":" + passwords[i] + "\n");
+                writer.write(passwordNames[i] + " :" + passwords[i] + "\n");
             }
+
             addActivity("Data saved to file");
             JOptionPane.showMessageDialog(null, "Data saved to " + FILE_PATH, "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
@@ -239,17 +240,18 @@ class Manager {
             count = 0;
 
             while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty()) continue;
-                if (line.equals("[User]")) {
-                    inUserSection = true;
-                    inPasswordSection = false;
-                    continue;
-                } else if (line.equals("[Passwords]")) {
-                    inUserSection = false;
-                    inPasswordSection = true;
-                    continue;
-                }
+                //user section or password section txt file mein exist krte hein k nh
+                        line = line.trim();
+                        if (line.isEmpty()) continue;
+                        if (line.equals("[User]")) {
+                            inUserSection = true;
+                            inPasswordSection = false;
+                            continue;
+                        } else if (line.equals("[Passwords]")) {
+                            inUserSection = false;
+                            inPasswordSection = true;
+                            continue;
+                        }
 
                 if (inUserSection && !create) {
                     if (line.startsWith("username:")) {
@@ -304,7 +306,7 @@ class Manager {
 
             if (create) {
                 addActivity("Loaded " + count + " passwords from file");
-                JOptionPane.showMessageDialog(null, "Loaded user data and " + count + " passwords from " + FILE_PATH, "Success", JOptionPane.INFORMATION_MESSAGE);
+                // JOptionPane.showMessageDialog(null, "Loaded user data and " + count + " passwords from " + FILE_PATH, "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Failed to load: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
