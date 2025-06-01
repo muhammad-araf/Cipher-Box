@@ -76,6 +76,9 @@ class Manager {
     public int count = 0;
     private List<String> activityLog = new ArrayList<>();
     private static final String FILE_PATH = "passwords.txt";
+    private static final int ASCII_MIN = 32; // Space
+    private static final int ASCII_MAX = 126; // Tilde
+    private static final int ASCII_RANGE = ASCII_MAX - ASCII_MIN + 1; // 95 printable characters
 
     void addActivity(String action) {
         String timestamp = new SimpleDateFormat("MMM dd, yyyy HH:mm:ss").format(new Date());
@@ -168,10 +171,19 @@ class Manager {
     String decryptPassword(int index, String keyStr) {
         try {
             int key = Integer.parseInt(keyStr.trim());
+            String encrypted = passwords[index];
             StringBuilder decryptedText = new StringBuilder();
-            for (int i = 0; i < passwords[index].length(); i++) {
-                char a = (char) (passwords[index].charAt(i) - key);
-                decryptedText.append(a);
+            // Decrypt using D(y) = (y - k) mod 95 for printable ASCII characters
+            for (int i = 0; i < encrypted.length(); i++) {
+                char c = encrypted.charAt(i);
+                if (c >= ASCII_MIN && c <= ASCII_MAX) {
+                    int y = c - ASCII_MIN; // Convert to 0-94
+                    int x = (y - key) % ASCII_RANGE; // Apply D(y) = (y - k) mod 95
+                    if (x < 0) x += ASCII_RANGE; // Handle negative modulo
+                    decryptedText.append((char) (x + ASCII_MIN)); // Convert back to ASCII
+                } else {
+                    decryptedText.append(c); // Non-printable characters unchanged
+                }
             }
             addActivity("Password '" + passwordNames[index] + "' decrypted");
             return "Decrypted Password for '" + passwordNames[index] + "': " + decryptedText.toString();
@@ -240,18 +252,17 @@ class Manager {
             count = 0;
 
             while ((line = reader.readLine()) != null) {
-                //user section or password section txt file mein exist krte hein k nh
-                        line = line.trim();
-                        if (line.isEmpty()) continue;
-                        if (line.equals("[User]")) {
-                            inUserSection = true;
-                            inPasswordSection = false;
-                            continue;
-                        } else if (line.equals("[Passwords]")) {
-                            inUserSection = false;
-                            inPasswordSection = true;
-                            continue;
-                        }
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                if (line.equals("[User]")) {
+                    inUserSection = true;
+                    inPasswordSection = false;
+                    continue;
+                } else if (line.equals("[Passwords]")) {
+                    inUserSection = false;
+                    inPasswordSection = true;
+                    continue;
+                }
 
                 if (inUserSection && !create) {
                     if (line.startsWith("username:")) {
@@ -306,7 +317,6 @@ class Manager {
 
             if (create) {
                 addActivity("Loaded " + count + " passwords from file");
-                // JOptionPane.showMessageDialog(null, "Loaded user data and " + count + " passwords from " + FILE_PATH, "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Failed to load: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -359,9 +369,17 @@ class Manager {
         try {
             int key = Integer.parseInt(keyStr.trim());
             StringBuilder decryptedText = new StringBuilder();
+            // Decrypt using D(y) = (y - k) mod 95 for printable ASCII characters
             for (int i = 0; i < subpassword.length(); i++) {
-                char a = (char) (subpassword.charAt(i) - key);
-                decryptedText.append(a);
+                char c = subpassword.charAt(i);
+                if (c >= ASCII_MIN && c <= ASCII_MAX) {
+                    int y = c - ASCII_MIN; // Convert to 0-94
+                    int x = (y - key) % ASCII_RANGE; // Apply D(y) = (y - k) mod 95
+                    if (x < 0) x += ASCII_RANGE; // Handle negative modulo
+                    decryptedText.append((char) (x + ASCII_MIN)); // Convert back to ASCII
+                } else {
+                    decryptedText.append(c); // Non-printable characters unchanged
+                }
             }
             addActivity("Custom password decrypted");
             JOptionPane.showMessageDialog(null, "Decrypted Password: " + decryptedText, "Decrypted Password", JOptionPane.INFORMATION_MESSAGE);
@@ -393,9 +411,16 @@ class Manager {
         }
         int key = (int) (Math.random() * 8) + 1;
         StringBuilder encryptedText = new StringBuilder();
+        // Encrypt using E(x) = (x + k) mod 95 for printable ASCII characters
         for (int i = 0; i < password.length(); i++) {
-            char a = (char) (password.charAt(i) + key);
-            encryptedText.append(a);
+            char c = password.charAt(i);
+            if (c >= ASCII_MIN && c <= ASCII_MAX) {
+                int x = c - ASCII_MIN; // Convert to 0-94
+                int y = (x + key) % ASCII_RANGE; // Apply E(x) = (x + k) mod 95
+                encryptedText.append((char) (y + ASCII_MIN)); // Convert back to ASCII
+            } else {
+                encryptedText.append(c); // Non-printable characters unchanged
+            }
         }
         passwords[count] = encryptedText.toString();
         passwordNames[count] = passwordName.trim();
