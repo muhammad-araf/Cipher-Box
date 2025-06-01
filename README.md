@@ -8,7 +8,7 @@
 
 ##  Features
 
--  **Password Encryption** – All passwords are securely encrypted.
+-  **Password Encryption** – Passwords are encrypted using a Caesar cipher, a symmetric cryptography technique (E(x) = (x + k) mod 95).
 -  **Save Passwords** – Store passwords with custom names.
 -  **Show & Decrypt** – View encrypted passwords securely.
 -  **Generate Strong Passwords** – Use the password generator with customization options.
